@@ -1,0 +1,68 @@
+name: Build and Deploy eShopOnWeb
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "migrations/"
+
+jobs:
+  build:
+    name: Build and Publish
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0' # Update to match the required .NET version
+
+      - name: Install Dependencies
+        run: |
+          dotnet restore src/Web/Web.csproj
+          dotnet restore src/PublicApi/PublicApi.csproj
+
+      - name: Publish Web App
+        run: |
+          dotnet publish src/Web/Web.csproj -c Release -o ${{ runner.temp }}/web
+          
+      - name: Publish API
+        run: |
+          dotnet publish src/PublicApi/PublicApi.csproj -c Release -o ${{ runner.temp }}/api
+
+      - name: Build Tests
+        run: dotnet build tests/FunctionalTests/FunctionalTests.csproj
+
+      - name: Run Functional Tests
+        run: |
+          dotnet test tests/FunctionalTests/FunctionalTests.csproj --configuration Release
+          
+  deploy:
+    name: Deploy to Azure
+    needs: build
+    runs-on: ubuntu-20.04
+    environment: production
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Install Azure CLI
+        uses: azure/CLI-action@v1
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy Web App to Azure
+        run: |
+          az webapp up --name eShopOnWeb --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --sku B1
+
+      - name: Deploy API to Azure
+        run: |
+          az webapp up --name eShopOnApi --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --sku B1
