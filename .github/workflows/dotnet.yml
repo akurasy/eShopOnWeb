@@ -29,7 +29,7 @@ jobs:
       - name: Publish Web App
         run: |
           dotnet publish src/Web/Web.csproj -c Release -o ${{ runner.temp }}/web
-          
+
       - name: Publish API
         run: |
           dotnet publish src/PublicApi/PublicApi.csproj -c Release -o ${{ runner.temp }}/api
@@ -40,7 +40,7 @@ jobs:
       - name: Run Functional Tests
         run: |
           dotnet test tests/FunctionalTests/FunctionalTests.csproj --configuration Release
-          
+
   deploy:
     name: Deploy to Azure
     needs: build
@@ -53,6 +53,9 @@ jobs:
 
       - name: Install Azure CLI
         uses: azure/CLI-action@v1
+        with:
+          inlineScript: |
+            az --version
 
       - name: Login to Azure
         uses: azure/login@v2
