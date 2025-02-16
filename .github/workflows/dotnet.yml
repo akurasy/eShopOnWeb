@@ -7,6 +7,11 @@ on:
     paths-ignore:
       - "migrations/"
 
+permissions:
+  id-token: write   # Required for OIDC authentication
+  contents: read    # Allows reading repository content (if needed)
+
+
 jobs:
   build:
     name: Build and Publish
