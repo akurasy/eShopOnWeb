@@ -60,12 +60,15 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_F7AD9E7FB0444085807E19648FDC13BB }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B053DD300BF24CACBB8C9DFD274D1E64 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_298E5C13C99F4F4D91E43A41C650C3B8 }}
 
-      - name: Deploy Web App to Azure
-        run: |
-          az webapp up --name eShopOnWeb --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --sku B1
-
-      - name: Deploy API to Azure
-        run: |
-          az webapp up --name eShopOnApi --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --sku B1
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'testingakuracy'
+          slot-name: 'Production'
+          package: .
+          
